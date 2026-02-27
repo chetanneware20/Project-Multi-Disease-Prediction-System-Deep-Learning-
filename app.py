@@ -1,40 +1,51 @@
 import streamlit as st
 import numpy as np
-import pickle
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.models import load_model
 
-st.set_page_config(page_title="Healthcare Multi-Disease Predictor")
+st.set_page_config(page_title="Healthcare Multi Disease Predictor")
+st.title("🏥 Multi-Disease Deep Learning Predictor")
 
-st.title("🏥 Healthcare Deep Learning Disease Prediction")
-
-# Disease selection
 disease = st.selectbox(
-    "Select Disease to Predict",
+    "Select Disease",
     ["Diabetes", "Heart Disease", "Kidney Disease", "Liver Disease"]
 )
 
-# Load scaler
-scaler = pickle.load(open("scaler.pkl", "rb"))
+def load_resources(disease):
 
-def load_selected_model(disease):
     if disease == "Diabetes":
-        return load_model("diabetes_model.h5")
-    elif disease == "Heart Disease":
-        return load_model("heart_model.h5")
-    elif disease == "Kidney Disease":
-        return load_model("kidney_model.h5")
-    elif disease == "Liver Disease":
-        return load_model("liver_model.h5")
+        df = pd.read_csv("datasets/diabetes.csv")
+        model = load_model("diabetes_model.h5")
 
-model = load_selected_model(disease)
+    elif disease == "Heart Disease":
+        df = pd.read_csv("datasets/heart.csv")
+        model = load_model("heart_model.h5")
+
+    elif disease == "Kidney Disease":
+        df = pd.read_csv("datasets/kidney.csv")
+        model = load_model("kidney_model.h5")
+
+    else:
+        df = pd.read_csv("datasets/liver.csv")
+        model = load_model("liver_model.h5")
+
+    df = df.fillna(df.mean())
+    X = df.iloc[:, :-1]
+
+    scaler = StandardScaler()
+    scaler.fit(X)
+
+    return model, scaler, X.shape[1]
+
+model, scaler, feature_count = load_resources(disease)
 
 st.subheader("Enter Patient Details")
 
-# Example generic inputs (modify based on dataset)
 input_data = []
 
-for i in range(8):  # Adjust number based on dataset features
-    val = st.number_input(f"Feature {i+1}")
+for i in range(feature_count):
+    val = st.number_input(f"Feature {i+1}", value=0.0)
     input_data.append(val)
 
 if st.button("Predict"):
