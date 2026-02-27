@@ -1,0 +1,4 @@
+scaler_diabetes.pkl
+scaler_heart.pkl
+scaler_kidney.pkl
+scaler_liver.pkl
